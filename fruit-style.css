@@ -1,0 +1,54 @@
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(17, 40px); /* 크기를 살짝 키웠습니다 */
+    grid-template-rows: repeat(10, 40px);
+    gap: 4px;
+    background: #fdfcf0;
+    padding: 15px;
+    border: 5px solid #ff7eb9;
+    border-radius: 20px;
+    position: relative;
+    user-select: none;
+    margin: 0 auto;
+}
+
+.fruit {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+/* 요청하신 이미지를 배경으로 설정 */
+.fruit::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('https://yt3.googleusercontent.com/63aN3bE-RxFlOti33EesaJT8a_RVHsrNHEqGy-C1aBJXd3vwjOY1wDpNZt-r61_q1k5he1arTg=s900-c-k-c0x00ffffff-no-rj');
+    background-size: cover;
+    background-position: center;
+    border-radius: 5px;
+    z-index: 1;
+}
+
+/* 숫자가 이미지 위에 잘 보이도록 설정 */
+.fruit-num {
+    position: relative;
+    z-index: 2;
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: #fff;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.fruit.selected::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 126, 185, 0.5); /* 선택 영역 강조 */
+    z-index: 3;
+    border-radius: 5px;
+}
+
+.fruit.removed { visibility: hidden; pointer-events: none; }

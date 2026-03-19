@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANI WORLD - Team Builder</title>
+    <link rel="stylesheet" href="team-style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="top-visual">
+            <img src="https://stimg.sooplive.co.kr/NORMAL_BBS/6/7137696/305369adc059599f2.gif" class="ani-gif-main">
+        </div>
+
+        <header>
+            <h1 id="page-title">모드를 선택해주세요</h1>
+            <div id="shuffle-badge" class="shuffle-count-wrapper" style="display: none;">
+                <span>섞은 횟수: <b id="shuffle-count-display">0</b>회</span>
+            </div>
+        </header>
+
+        <div id="mode-selection" class="selection-wrapper">
+            <div class="select-card" onclick="startMode('ck')">
+                <span class="emoji">⚔️</span>
+                <div class="select-info">
+                    <h3>CK 팀 섞기</h3>
+                    <p>라인별 맞대결 (라인 유지)</p>
+                </div>
+            </div>
+            <div class="select-card" onclick="startMode('solo')">
+                <span class="emoji">🎲</span>
+                <div class="select-info">
+                    <h3>솔랭 내기</h3>
+                    <p>전체 인원 무작위 섞기</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="builder-area" style="display: none;">
+            <div id="tab-ck" class="tab-content">
+                <div class="team-labels">
+                    <span class="label blue">BLUE</span>
+                    <span class="label red">RED</span>
+                </div>
+                <div id="lane-rows-ck"></div>
+            </div>
+
+            <div id="tab-solo" class="tab-content">
+                <div class="solo-config">
+                    <span>인원 설정</span>
+                    <select id="solo-count" onchange="generateSoloRows()">
+                        <option value="1">1 : 1</option>
+                        <option value="2">2 : 2</option>
+                        <option value="3">3 : 3</option>
+                        <option value="4">4 : 4</option>
+                        <option value="5">5 : 5</option>
+                    </select>
+                </div>
+                <div class="team-labels">
+                    <span class="label blue">TEAM A</span>
+                    <span class="label red">TEAM B</span>
+                </div>
+                <div id="lane-rows-solo"></div>
+            </div>
+
+            <footer>
+                <button class="main-btn shuffle" onclick="shuffleTeams()">🪄 섞기</button>
+                <div class="footer-buttons">
+                    <button class="sub-btn" onclick="resetInputs()">🔄 초기화</button>
+                    <button class="sub-btn highlight" onclick="copyResult()">📋 복사하기</button>
+                </div>
+            </footer>
+        </div>
+        
+        <button class="home-btn" onclick="goBackToMenu()">← 뒤로가기</button>
+    </div>
+    <script src="team-script.js"></script>
+</body>
+</html>

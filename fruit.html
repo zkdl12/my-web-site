@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>과일 깎기 게임 - 합 10 만들기</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+
+        :root {
+            --main-pink: #FFC0CB;
+            --neon-pink: #ff7eb9;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #FFF5F7 0%, var(--main-pink) 100%);
+            font-family: 'Pretendard', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0;
+        }
+
+        .game-container {
+            background: white; border-radius: 30px; padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center;
+            user-select: none;
+        }
+
+        header h1 { color: var(--neon-pink); margin-bottom: 10px; }
+        .score-board { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; color: #444; }
+
+        /* 과일 그리드 설정 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(17, 40px); /* 가로 17칸 */
+            grid-template-rows: repeat(10, 40px);    /* 세로 10칸 */
+            gap: 4px; padding: 10px; background: #fdfcf0;
+            border: 4px solid var(--neon-pink); border-radius: 15px;
+            position: relative;
+        }
+
+        .fruit {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            position: relative; cursor: pointer;
+        }
+
+        /* 요청하신 이미지 배경 적용 */
+        .fruit::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://yt3.googleusercontent.com/63aN3bE-RxFlOti33EesaJT8a_RVHsrNHEqGy-C1aBJXd3vwjOY1wDpNZt-r61_q1k5he1arTg=s900-c-k-c0x00ffffff-no-rj');
+            background-size: cover; background-position: center;
+            border-radius: 6px; z-index: 1;
+        }
+
+        /* 숫자 가독성 (외곽선 처리) */
+        .fruit-num {
+            position: relative; z-index: 2; font-weight: 900; font-size: 1.3rem; color: #fff;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+
+        /* 드래그 선택 시 하이라이트 */
+        .fruit.selected::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 126, 185, 0.5); border-radius: 6px; z-index: 3;
+        }
+
+        .fruit.removed { visibility: hidden; pointer-events: none; }
+
+        .main-btn {
+            background: var(--neon-pink); color: white; border: none;
+            padding: 15px 40px; border-radius: 15px; font-weight: 800;
+            margin-top: 25px; cursor: pointer; transition: 0.2s;
+        }
+        .main-btn:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <header>
+        <h1>과일 깎기 (합 10)</h1>
+        <div class="score-board">점수: <span id="score">0</span> | 시간: <span id="timer">120</span>s</div>
+    </header>
+    
+    <div id="fruit-grid" class="grid-container"></div>
+    
+    <button class="main-btn" onclick="initGame()">게임 리셋</button>
+</div>
+
+<script>
+    let isDragging = false;
+    let startPos = { r: 0, c: 0 };
+    let score = 0;
+    let timeLeft = 120;
+    let timerId = null;
+    const grid = document.getElementById('fruit-grid');
+
+    // 게임 초기화: 17x10 랜덤 숫자 배치
+    function initGame() {
+        grid.innerHTML = '';
+        score = 0; timeLeft = 120;
+        document.getElementById('score').innerText = score;
+        document.getElementById('timer').innerText = timeLeft;
+        
+        if(timerId) clearInterval(timerId);
+        startTimer();
+
+        for (let r = 0; r < 10; r++) {
+            for (let c = 0; c < 17; c++) {
+                const num = Math.floor(Math.random() * 9) + 1;
+                const fruit = document.createElement('div');
+                fruit.className = 'fruit';
+                fruit.dataset.r = r; fruit.dataset.c = c;
+                fruit.dataset.val = num;
+                
+                const numSpan = document.createElement('span');
+                numSpan.className = 'fruit-num';
+                numSpan.innerText = num;
+                fruit.appendChild(numSpan);
+                
+                fruit.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startPos = { r, c };
+                    e.preventDefault();
+                });
+                
+                fruit.addEventListener('mouseenter', () => updateDrag(r, c));
+                grid.appendChild(fruit);
+            }
+        }
+    }
+
+    // 드래그 중 영역 계산 및 합계 체크
+    function updateDrag(currR, currC) {
+        if (!isDragging) return;
+        
+        document.querySelectorAll('.fruit').forEach(f => f.classList.remove('selected'));
+        
+        const minR = Math.min(startPos.r, currR);
+        const maxR = Math.max(startPos.r, currR);
+        const minC = Math.min(startPos.c, currC);
+        const maxC = Math.max(startPos.c, currC);
+
+        let currentSum = 0;
+        let selectedList = [];
+
+        document.querySelectorAll('.fruit').forEach(f => {
+            const r = parseInt(f.dataset.r);
+            const c = parseInt(f.dataset.c);
+            if (r >= minR && r <= maxR && c >= minC && c <= maxC && !f.classList.contains('removed')) {
+                f.classList.add('selected');
+                currentSum += parseInt(f.dataset.val);
+                selectedList.push(f);
+            }
+        });
+
+        // 합이 10이 되면 즉시 제거
+        if (currentSum === 10) {
+            selectedList.forEach(f => f.classList.add('removed'));
+            score += selectedList.length;
+            document.getElementById('score').innerText = score;
+            isDragging = false;
+        }
+    }
+
+    function startTimer() {
+        timerId = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            if(timeLeft <= 0) {
+                clearInterval(timerId);
+                alert("게임 종료! 최종 점수: " + score);
+            }
+        }, 1000);
+    }
+
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+        document.querySelectorAll('.fruit').forEach(f => f.classList.remove('selected'));
+    });
+
+    // 시작
+    initGame();
+</script>
+
+</body>
+</html>
